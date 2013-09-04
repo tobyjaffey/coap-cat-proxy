@@ -60,84 +60,92 @@ app.get('/cat', function(req, rsp) {
 
 app.get('/proxycat', function(req, rsp) {
     console.log("CoAP req for "+req.query.url+'/.well-known/core');
-    var coapReq = client.get(req.query.url+'/.well-known/core', {
-      accept: 'application/link-format'
-    });
+    try {
+        var coapReq = client.get(req.query.url+'/.well-known/core', {
+          accept: 'application/link-format'
+        });
 
-    coapReq.on('error', function(coapRes) {
-        rsp.send(400);
-    });
+        coapReq.on('error', function(coapRes) {
+            rsp.send(400);
+        });
 
-    coapReq.on('timeout', function(coapRes) {
-        rsp.send(408);
-    });
+        coapReq.on('timeout', function(coapRes) {
+            rsp.send(408);
+        });
 
-    coapReq.on('response', function(coapRes) {
-        if (coapRes.isSuccess()) {
-            var coapObj = linkformat.parse(coapRes.getPayload().toString());
-            console.log(coapObj);
-            var cat = {
-                "item-metadata":[
-                    {
-                        "rel":"urn:X-tsbiot:rels:isContentType",
-                        "val":"application/vnd.tsbiot.catalogue+json"
-                    },
-                    {
-                        "rel":"urn:X-tsbiot:rels:hasDescription:en",
-                        "val":"Proxied version of "+req.query.url
+        coapReq.on('response', function(coapRes) {
+            if (coapRes.isSuccess()) {
+                var coapObj = linkformat.parse(coapRes.getPayload().toString());
+                console.log(coapObj);
+                var cat = {
+                    "item-metadata":[
+                        {
+                            "rel":"urn:X-tsbiot:rels:isContentType",
+                            "val":"application/vnd.tsbiot.catalogue+json"
+                        },
+                        {
+                            "rel":"urn:X-tsbiot:rels:hasDescription:en",
+                            "val":"Proxied version of "+req.query.url
+                        }
+                    ],
+                    "items":[]
+                };
+                for (var i=0;i<coapObj.length;i++) {
+                    var mdata = [], item = {};
+                    item.href = '/proxyrsrc?url=' + encodeURIComponent(req.query.url+coapObj[i].href);
+                    mdata.push({
+                        rel: "urn:X-tsbiot:rels:hasDescription:en",
+                        val: coapObj[i].title
+                    });
+                    mdata.push({
+                        rel: "urn:X-tsbiot:rels:isContentType",
+                        val: "text/plain"
+                    });
+                    if (coapObj[i].if !== undefined) {
+                        mdata.push({
+                            rel: "urn:X-coap:if",
+                            val: coapObj[i].if
+                        });
                     }
-                ],
-                "items":[]
-            };
-            for (var i=0;i<coapObj.length;i++) {
-                var mdata = [], item = {};
-                item.href = '/proxyrsrc?url=' + encodeURIComponent(req.query.url+coapObj[i].href);
-                mdata.push({
-                    rel: "urn:X-tsbiot:rels:hasDescription:en",
-                    val: coapObj[i].title
-                });
-                mdata.push({
-                    rel: "urn:X-tsbiot:rels:isContentType",
-                    val: "text/plain"
-                });
-                if (coapObj[i].if !== undefined) {
-                    mdata.push({
-                        rel: "urn:X-coap:if",
-                        val: coapObj[i].if
-                    });
+                    if (coapObj[i].ct !== undefined) {
+                        mdata.push({
+                            rel: "urn:X-coap:ct",
+                            val: ""+coapObj[i].ct
+                        });
+                    }
+                    if (coapObj[i].rt !== undefined) {
+                        mdata.push({
+                            rel: "urn:X-coap:rt",
+                            val: coapObj[i].rt
+                        });
+                    }
+                    item['i-object-metadata'] = mdata;
+                    cat.items.push(item);
                 }
-                if (coapObj[i].ct !== undefined) {
-                    mdata.push({
-                        rel: "urn:X-coap:ct",
-                        val: ""+coapObj[i].ct
-                    });
-                }
-                if (coapObj[i].rt !== undefined) {
-                    mdata.push({
-                        rel: "urn:X-coap:rt",
-                        val: coapObj[i].rt
-                    });
-                }
-                item['i-object-metadata'] = mdata;
-                cat.items.push(item);
+                rsp.send(200, JSON.stringify(cat));
+            } else {
+                rsp.send(400, coapRes.toPrettyString());
             }
-            rsp.send(200, JSON.stringify(cat));
-        } else {
-            rsp.send(400, coapRes.toPrettyString());
-        }
-    });
+        });
+    } catch(e) {
+        rsp.send(400, e.toString());
+    }
 });
 
 app.get('/proxyrsrc', function(req, rsp) {
-    var coapReq = client.get(req.query.url);
+    try {
+        var coapReq = client.get(req.query.url);
 
-    coapReq.on('response', function(coapRes) {
-        if (coapRes.isSuccess()) {
-            rsp.send(200, coapRes.getPayload().toString());
-        } else {
-            rsp.send(400, coapRes.toPrettyString());
-        }
-    });
+        coapReq.on('response', function(coapRes) {
+            if (coapRes.isSuccess()) {
+                rsp.send(200, coapRes.getPayload().toString());
+            } else {
+                rsp.send(400, coapRes.toPrettyString());
+            }
+        });
+    } catch(e) {
+        rsp.send(400, e.toString());
+    }
 });
 
 http.createServer(app).listen(PORT, function () {

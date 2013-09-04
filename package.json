@@ -4,7 +4,7 @@
   "description": "CoAP to HyperCat proxy",
   "main": "coap-cat-proxy.js",
   "scripts": {
-    "start": "nodemon coap-cat-proxy.js coap://coap.me coap://coap.me:5683 coap://127.0.0.1",
+    "start": "nodemon coap-cat-proxy.js coap://134.102.218.16 coap://134.102.218.16:5683 coap://127.0.0.1",
     "test": "node_modules/jshint/bin/jshint *.js"
   },
   "author": "Toby Jaffey <toby@1248.io>",
