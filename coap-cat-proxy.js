@@ -95,7 +95,7 @@ app.get('/proxycat', function(req, rsp) {
                     item.href = '/proxyrsrc?url=' + encodeURIComponent(req.query.url+coapObj[i].href);
                     mdata.push({
                         rel: "urn:X-tsbiot:rels:hasDescription:en",
-                        val: coapObj[i].title
+                        val: (coapObj[i].title === undefined) ? req.query.url+coapObj[i].href : coapObj[i].title
                     });
                     mdata.push({
                         rel: "urn:X-tsbiot:rels:isContentType",
