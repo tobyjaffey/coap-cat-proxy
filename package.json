@@ -1,0 +1,20 @@
+{
+  "name": "coap-cat-proxy",
+  "version": "0.0.1",
+  "description": "CoAP to HyperCat proxy",
+  "main": "coap-cat-proxy.js",
+  "scripts": {
+    "start": "nodemon coap-cat-proxy.js coap://coap.me coap://coap.me:5683 coap://127.0.0.1",
+    "test": "node_modules/jshint/bin/jshint *.js"
+  },
+  "author": "Toby Jaffey <toby@1248.io>",
+  "devDependencies": {
+    "nodemon": "~0.7.4",
+    "jshint": "~2.1.3"
+  },
+  "dependencies": {
+    "express": "~3.1.0",
+    "h5.coap": "git://github.com/morkai/h5.coap#master",
+    "h5.linkformat": "git://github.com/morkai/h5.linkformat#master"
+  }
+}
